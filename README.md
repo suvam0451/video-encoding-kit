@@ -8,8 +8,8 @@ Registering an app for Google drive API should give you a `credentials.json` fil
 ```json
 {
   "installed": {
-    "client_id": "XYZ"
-    "project_id": "quickstart-XYZ"
+    "client_id": "XYZ",
+    "project_id": "quickstart-XYZ",
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
     "token_uri": "https://oauth2.googleapis.com/token",
     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
