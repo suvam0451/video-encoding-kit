@@ -1,0 +1,16 @@
+image: golang:latest
+
+stages:
+  - package
+
+BuildAllPlatforms:
+  image: golang:latest
+  stage: package
+  script:
+    - GOOS=linux GOARCH=amd64 go build -o ../bin/linux/critstrike critstrike.go
+    - GOOS=darwin GOARCH=amd64 go build -o ../bin/macos/critstrike critstrike.go
+    - GOOS=windows GOARCH=amd64 go build -o ../bin/win64/critstrike.exe critstrike.go
+  artifacts:
+    paths:
+      - ./bin
+    expire_in: 30 days

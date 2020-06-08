@@ -16,54 +16,16 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/spf13/cobra"
-	gdrive "github.com/suvam0451/drivekit/gdrive"
 )
 
 // gdriveCmd represents the gdrive command
 var gdriveCmd = &cobra.Command{
 	Use:   "gdrive",
 	Short: "Use to access google drive.",
-	Long:  `.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		// Get named arguments
-		tokenpath, _ := cmd.Flags().GetString("tokenpath")
-		credpath, _ := cmd.Flags().GetString("credentialspath")
-		jsonfile, _ := cmd.Flags().GetString("jsonquery")
-		query, _ := cmd.Flags().GetString("query")
-		id, _ := cmd.Flags().GetString("id")
-
-		if _endpoint, err := gdrive.Authenticate(credpath, tokenpath); err == nil {
-			fmt.Println("Authentication successful.")
-			if jsonfile == "" {
-				switch query {
-				case "getfile":
-					gdrive.DownloadFile(_endpoint, id)
-
-				case "listdir":
-					gdrive.ListFilesInFolder(_endpoint, id)
-				default:
-					// Do nothing
-				}
-			} else {
-
-			}
-		} else {
-			log.Println(err.Error())
-		}
-	},
+	Long:  `Check out the upload/download/generate subcommands for more.`,
 }
 
 func init() {
 	rootCmd.AddCommand(gdriveCmd)
-
-	// Flags
-	gdriveCmd.PersistentFlags().StringP("tokenpath", "t", "./token.json", "fullpath location to the token file for this run.")
-	gdriveCmd.PersistentFlags().StringP("credentialspath", "c", "./credentials.json", "fullpath location to your credentials file.")
-	gdriveCmd.PersistentFlags().StringP("query", "q", "none", "Query argument. View the README for possible values.")
-	gdriveCmd.PersistentFlags().StringP("jsonquery", "j", "", "Formatted JSON file as query. Use to carry out multiple in-order operations.")
-	gdriveCmd.PersistentFlags().StringP("id", "i", "", "ID field for single queries. See README for usecases. Use JSON files for multiple concurrect queries.")
 }

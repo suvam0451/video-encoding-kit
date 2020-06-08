@@ -2,6 +2,29 @@
 
 ffmpeg encoding worker with file transfer support (GDrive, OneDrive). Build uses fedora but the generated go binaries should be usable from anywhere.
 
+### Overview
+
+Simplified command-line access to drive resources. Built keeping containers and flexibility in mind.
+
+Here are some example use cases :-
+
+```sh
+ # Upload folder-->folder(cloud)
+drivekit gdrive upload -i 1Ud4MyIu5fnpJqnB2epovCP4SJqnX2i5Q -d ./uplink
+ # Download folder(cloud)-->folder
+drivekit gdrive download -i 1Ud4MyIu5fnpJqnB2epovCP4SJqnX2i5Q -d ./downlink
+```
+
+## Usage
+
+- You can clone the repo and test the client locally from source.
+- Download the linux binary and save in to /bin/ in your docker image and use it from there.
+
+```sh
+# For linux
+wget https://github.com/suvam0451/video-encoding-kit/releases/latest/download/drivekit
+```
+
 ## Google drive
 
 Registering an app for Google drive API should give you a `credentials.json` file as shown below. Choose Installed/Desktop app when opted.
@@ -52,4 +75,54 @@ go run main.go gdrive -i "1qV-5YmODxtDVJGhXFq3RTC-E2NkLmL0b" -q "getfile"   # Li
 gdrive scanfolder id          # see below for how to get folder id
 gdrive getfile id             # see below for how to get file id
 gdrive getfile id name        # get the file with specific name
+```
+
+## Completely anonymous access
+
+On public servers, you would want to hide your auth codes. This is usually done by environment variables. For the **credentials.json**, you would need to setup the following environment variables.
+(NOTE: These credentials are unique for the entire application.)
+
+- CLIEND_ID
+- PROJECT_ID
+- CLIENT_SECRET
+
+If all these variables are found and are _non-empty_, then the **credentials.json** file would be generated as follows **in the same directory**
+
+```json
+// Generated
+{
+  "installed": {
+    "client_id": "{CLIENT_ID}",
+    "project_id": "{PROJECT_ID}",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_secret": "XYZ",
+    "redirect_uris": ["urn:ietf:wg:oauth:2.0:oob", "http://localhost"]
+  }
+}
+```
+
+To run the **credentials.json generator**, you will need the following command
+
+```
+drivekit gdrive generate cred
+
+```
+
+For the token files, it's a little different. You would need to pass the name of the environment variables instead.
+This way, you can have multiple pairs of key pairs in multiple variables.
+
+```
+drivekit gdrive generate token -
+```
+
+#### Note to self
+
+cat ~/GH_TOKEN.txt | docker login docker.pkg.github.com -u suvam0451 --password-stdin
+
+- Copying to /bin/ -->
+
+```sh
+yes | sudo cp -rf drivekit /bin/
 ```

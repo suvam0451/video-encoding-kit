@@ -31,7 +31,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "drivekit",
 	Short: "Kit to easily work with GoogleDrive and OneDrive",
-	Long:  `.`,
+	Long:  `Utilities to easily work with google drive, onedrive etc.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

@@ -7,6 +7,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
+	"path/filepath"
+	"sync"
 
 	"google.golang.org/api/drive/v3"
 )
@@ -22,7 +25,6 @@ type FileData struct {
 
 // ListFilesInFolder : Lists files under folder (Provide folder ID)
 func ListFilesInFolder(_service *drive.Service, folderid string) ([]*drive.File, error) {
-	fmt.Println("Yeet")
 	var fs []*drive.File
 	var data []FileData
 
@@ -38,13 +40,15 @@ func ListFilesInFolder(_service *drive.Service, folderid string) ([]*drive.File,
 			fmt.Printf(err.Error())
 			return fs, err
 		}
-		fmt.Println("Navigated one page...")
+
 		for _, _file := range r.Files {
 			data = append(data, FileData{
 				Name:      _file.Name,
 				ID:        _file.Id,
 				Extension: _file.FileExtension,
 			})
+
+			fs = append(fs, _file)
 		}
 
 		pageToken = r.NextPageToken
@@ -56,6 +60,102 @@ func ListFilesInFolder(_service *drive.Service, folderid string) ([]*drive.File,
 	_ = ioutil.WriteFile("test.json", file, 0644)
 
 	return fs, nil
+}
+
+// UploadFolder -- upload a single file
+func UploadFolder(_service *drive.Service, folderid string, folderdir string) {
+	var files []string
+	guard := make(chan struct{}, 4) // Allows 3 workers at a time
+	var wg sync.WaitGroup
+
+	if err := filepath.Walk(folderdir, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			files = append(files, path)
+		}
+		return nil
+	}); err == nil {
+		// Channel for progress bar
+		done := make(chan bool, len(files))
+
+		for _, file := range files {
+			wg.Add(1)
+			go func(filename string) {
+				guard <- struct{}{}
+				UploadFile(_service, folderid, filename)
+				done <- true // send success
+				wg.Done()
+				<-guard
+			}(file)
+
+		}
+		counter := 0
+		for i := range done {
+			counter++
+			if i {
+				fmt.Println("\r" + fmt.Sprintf("Uploaded %d/%d files.", counter, len(files)))
+			}
+			if counter == len(files) {
+				close(done)
+			}
+		}
+
+		wg.Wait()
+		fmt.Println("Done...")
+	}
+}
+
+// DownloadFolder : Be skeptical
+func DownloadFolder(_service *drive.Service, _id, outputpath string) {
+	guard := make(chan struct{}, 4) // Allows 3 workers at a time
+	var wg sync.WaitGroup
+
+	if arr, err := ListFilesInFolder(_service, _id); err == nil {
+		fmt.Println(fmt.Sprintf("Downloading %d files...", len(arr)))
+
+		// Channel for progress bar
+		done := make(chan bool, len(arr))
+		// Worker loop
+		for _, file := range arr {
+			wg.Add(1)
+			go func(fileid, filename string) {
+				guard <- struct{}{}
+				downloadFile(_service, fileid, filename)
+				done <- true // send success
+				wg.Done()
+				<-guard
+			}(file.Id, path.Join(outputpath, file.Name))
+		}
+
+		counter := 0
+		for i := range done {
+			counter++
+			if i {
+				fmt.Println("\r" + fmt.Sprintf("Downloaded %d/%d files.", counter, len(arr)))
+			}
+			if counter == len(arr) {
+				close(done)
+			}
+		}
+	}
+
+	wg.Wait()
+	fmt.Println("Done...")
+}
+
+func downloadFile(_service *drive.Service, _id, outpath string) {
+	// test, err1 := _service.Files.Get(_id).Do()
+	// if err1 == nil {
+	// 	fmt.Println(test.Name)
+	// }
+	res := _service.Files.Get(_id)
+	res2, err := res.Download()
+	defer res2.Body.Close()
+	out, err := os.Create(outpath)
+	if err != nil {
+		// panic?
+	}
+	defer out.Close()
+	io.Copy(out, res2.Body)
 }
 
 // DownloadFile -- downloads file
@@ -76,11 +176,14 @@ func DownloadFile(_service *drive.Service, _id string) {
 }
 
 // UploadFile : Upload a file to cloud
-func UploadFile(_service *drive.Service, name string, folderid string, filename string) (*drive.File, error) {
+// 	name: name as which to upload
+// 	folderid : id of folder to send to
+// 	filename : location of file
+func UploadFile(_service *drive.Service, folderid string, filename string) (*drive.File, error) {
 
 	if filecontent, err := os.Open(filename); err == nil {
 		f := &drive.File{
-			Name:    name,
+			Name:    filepath.Base(filename),
 			Parents: []string{folderid},
 		}
 
@@ -90,6 +193,8 @@ func UploadFile(_service *drive.Service, name string, folderid string, filename 
 		}
 
 		return file, nil
+	} else {
+		log.Fatalln("Input file not found. Verify your -d parameter. Is it pointing to an existing file ?")
 	}
 
 	return nil, nil
