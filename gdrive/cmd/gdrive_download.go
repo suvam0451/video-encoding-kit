@@ -38,16 +38,17 @@ var gdriveDownloadCmd = &cobra.Command{
 		tokenpath, _ := cmd.Flags().GetString("tokenpath")
 		credpath, _ := cmd.Flags().GetString("credentialspath")
 		id, _ := cmd.Flags().GetString("id")
-		_path, _ := cmd.Flags().GetString("uploadpath")
+		_path, _ := cmd.Flags().GetString("downloadpath")
 
 		if _endpoint, err := gdrive.Authenticate(credpath, tokenpath); err == nil {
 			fmt.Println("Authentication successful.")
 			if fi, err := os.Stat(_path); err == nil {
 				switch mode := fi.Mode(); {
 				case mode.IsDir():
-					fmt.Println("Folder detected")
+					fmt.Println("Folder detected.")
 					gdrive.DownloadFolder(_endpoint, id, _path)
 				case mode.IsRegular():
+					fmt.Println("File detected.")
 					gdrive.DownloadFile(_endpoint, id)
 				default:
 					log.Fatalf("Path provided is neither a file, nor a directory.")
@@ -70,7 +71,7 @@ func init() {
 	gdriveDownloadCmd.PersistentFlags().StringP("query", "q", "none", "Query argument. View the README for possible values.")
 	gdriveDownloadCmd.PersistentFlags().StringP("jsonquery", "j", "", "Formatted JSON file as query. Use to carry out multiple in-order operations.")
 	gdriveDownloadCmd.PersistentFlags().StringP("id", "i", "", "ID field for single queries. See README for usecases. Use JSON files for multiple concurrect queries.")
-	gdriveDownloadCmd.PersistentFlags().StringP("uploadpath", "d", "", "Location of object to upload. File for single file upload. Folder for multiple file upload")
+	gdriveDownloadCmd.PersistentFlags().StringP("downloadpath", "d", ".", "Location of object to upload. File for single file upload. Folder for multiple file upload")
 
 	// go run main.go gdrive -q uploadfile -i 1Ud4MyIu5fnpJqnB2epovCP4SJqnX2i5Q -d ./g-taste-3.mp4
 	// go run main.go gdrive -q uploadfolder -i 1Ud4MyIu5fnpJqnB2epovCP4SJqnX2i5Q -d ./uplink

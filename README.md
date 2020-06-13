@@ -8,10 +8,15 @@ Simplified command-line access to drive resources. Built keeping containers and 
 
 Here are some example use cases :-
 
+Uploading a folder to a folder on the cloud
+
 ```sh
- # Upload folder-->folder(cloud)
 drivekit gdrive upload -i 1Ud4MyIu5fnpJqnB2epovCP4SJqnX2i5Q -d ./uplink
- # Download folder(cloud)-->folder
+```
+
+Downloading all files in a cloud folder to a local folder _(specified with -d)_
+
+```sh
 drivekit gdrive download -i 1Ud4MyIu5fnpJqnB2epovCP4SJqnX2i5Q -d ./downlink
 ```
 
@@ -25,7 +30,12 @@ drivekit gdrive download -i 1Ud4MyIu5fnpJqnB2epovCP4SJqnX2i5Q -d ./downlink
 wget https://github.com/suvam0451/video-encoding-kit/releases/latest/download/drivekit
 ```
 
-## Google drive
+## Guides for beginners
+
+### Google drive users
+
+<details>
+<summary>Setting up the app !!!</summary>
 
 Registering an app for Google drive API should give you a `credentials.json` file as shown below. Choose Installed/Desktop app when opted.
 
@@ -55,6 +65,16 @@ Also, you would get the following `token.json` file when you provide your applic
 }
 ```
 
+</details>
+
+<details>
+<summary>Security and permissions 101 !!!</summary>
+</details>
+
+<details>
+<summary>Additional directives !!!</summary>
+</details>
+
 ## Testing locally
 
 You can run this locally, if you have the golang tools. Run
@@ -67,20 +87,9 @@ go run main.go client_gdrive.go
 - The path to token.json is given as first argument (assuming you wuld have more than 1 drive)
 - When using **scanfolder** argument, the file **scanresult.json** will be generated with {name,id, fileextension}. You can use this later for the **getfile** argument.
 
-Possible queries
-
-```powershell
-go run main.go gdrive -i "1qV-5YmODxtDVJGhXFq3RTC-E2NkLmL0b" -q "listdir"   # Lists files in folder. See below for how to get folder id
-go run main.go gdrive -i "1qV-5YmODxtDVJGhXFq3RTC-E2NkLmL0b" -q "getfile"   # Lists files in folder. See below for how to get folder id
-gdrive scanfolder id          # see below for how to get folder id
-gdrive getfile id             # see below for how to get file id
-gdrive getfile id name        # get the file with specific name
-```
-
-## Completely anonymous access
+## Anonymous access in containers 🕵🏿
 
 On public servers, you would want to hide your auth codes. This is usually done by environment variables. For the **credentials.json**, you would need to setup the following environment variables.
-(NOTE: These credentials are unique for the entire application.)
 
 - CLIEND_ID
 - PROJECT_ID
@@ -89,7 +98,7 @@ On public servers, you would want to hide your auth codes. This is usually done 
 If all these variables are found and are _non-empty_, then the **credentials.json** file would be generated as follows **in the same directory**
 
 ```json
-// Generated
+// This file will be generated from environment variables, if present...
 {
   "installed": {
     "client_id": "{CLIENT_ID}",
@@ -97,17 +106,20 @@ If all these variables are found and are _non-empty_, then the **credentials.jso
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
     "token_uri": "https://oauth2.googleapis.com/token",
     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_secret": "XYZ",
+    "client_secret": "{CLIENT_SECRET}",
     "redirect_uris": ["urn:ietf:wg:oauth:2.0:oob", "http://localhost"]
   }
 }
 ```
 
-To run the **credentials.json generator**, you will need the following command
+Here are the commands for the generators (consecutive tokens are replaced). They will
 
-```
-drivekit gdrive generate cred
+- always have the same name {credentials.json, token.json}
+- be on the current directory.
 
+```bash
+drivekit gdrive generate credentials
+drivekit gdrive generate token
 ```
 
 For the token files, it's a little different. You would need to pass the name of the environment variables instead.
@@ -117,12 +129,16 @@ This way, you can have multiple pairs of key pairs in multiple variables.
 drivekit gdrive generate token -
 ```
 
-#### Note to self
+Feel free to open issues for additional feature requests/bugs. Thank you.
 
-cat ~/GH_TOKEN.txt | docker login docker.pkg.github.com -u suvam0451 --password-stdin
+---
 
-- Copying to /bin/ -->
+## Note to self 📝
 
 ```sh
+cat ~/GH_TOKEN.txt | docker login docker.pkg.github.com -u suvam0451 --password-stdin
+# build + push podman packages
+
+# Copying binary to /bin/ -->
 yes | sudo cp -rf drivekit /bin/
 ```
