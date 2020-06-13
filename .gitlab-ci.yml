@@ -11,3 +11,7 @@ TestPack:
     - GOOS=windows GOARCH=amd64 go build -o ../bin/drivekit.exe drivekit.go
     - GOOS=darwin GOARCH=amd64 go build -o ../bin/drivekit_mac drivekit.go
     - GOOS=linux GOARCH=amd64 go build -o ../bin/drivekit drivekit.go
+  artifacts:
+    paths:
+      - ./bin
+    expire_in: 30 days
