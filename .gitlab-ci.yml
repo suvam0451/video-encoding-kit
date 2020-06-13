@@ -1,0 +1,13 @@
+image: golang:latest
+
+stages:
+  - build
+
+TestPack:
+  stage: build
+  script:
+    - mkdir -p bin/{linux,macos,win64}
+    - cd gdrive
+    - GOOS=windows GOARCH=amd64 go build -o ../bin/critstrike.exe main.go
+    - GOOS=darwin GOARCH=amd64 go build -o ../bin/critstrike_mac main.go
+    - GOOS=linux GOARCH=amd64 go build -o ../bin/critstrike main.go
