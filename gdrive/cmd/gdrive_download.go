@@ -43,15 +43,20 @@ var gdriveDownloadCmd = &cobra.Command{
 		if _endpoint, err := gdrive.Authenticate(credpath, tokenpath); err == nil {
 			fmt.Println("Authentication successful.")
 			if fi, err := os.Stat(_path); err == nil {
-				switch mode := fi.Mode(); {
-				case mode.IsDir():
-					fmt.Println("Folder detected.")
-					gdrive.DownloadFolder(_endpoint, id, _path)
-				case mode.IsRegular():
-					fmt.Println("File detected.")
-					gdrive.DownloadFile(_endpoint, id)
-				default:
-					log.Fatalf("Path provided is neither a file, nor a directory.")
+				// ID must be provided
+				if id == "" {
+					fmt.Println("No file/folder id provided")
+				} else {
+					switch mode := fi.Mode(); {
+					case mode.IsDir():
+						fmt.Println("Folder detected.")
+						gdrive.DownloadFolder(_endpoint, id, _path)
+					case mode.IsRegular():
+						fmt.Println("File detected.")
+						gdrive.DownloadFile(_endpoint, id)
+					default:
+						log.Fatalf("Path provided is neither a file, nor a directory.")
+					}
 				}
 			} else {
 				log.Fatalf("The input file/directory doesn't exist.")
